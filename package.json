@@ -6,6 +6,7 @@
     "start": "node dist/server.js",
     "build": "tsc"
   },
+  "author":"Sruthi R",
   "dependencies": {
     "@upstash/redis": "^1.28.2",
     "cors": "^2.8.5",

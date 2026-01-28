@@ -1,5 +1,6 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
+
 <head>
   <title>View Paste - Terminal Mode</title>
   <style>
@@ -9,9 +10,11 @@
       font-family: Consolas, monospace;
       padding: 20px;
     }
+
     h1 {
       text-shadow: 0px 0px 10px #00ff99;
     }
+
     pre {
       border: 1px solid #00ff99;
       padding: 15px;
@@ -19,24 +22,106 @@
       overflow-x: auto;
       color: #00ff99;
     }
+
+    .error {
+      border-color: #ffcc00;
+    }
+
+    .warning-symbol {
+      color: #ffcc00;
+    }
+
+    .error-message {
+      color: #ff0000;
+    }
+
+    .app-title {
+      text-align: center;
+      font-size: 32px;
+      margin-bottom: 30px;
+      letter-spacing: 3px;
+      color: #00ff99;
+      text-shadow: 0px 0px 15px #00ff99;
+    }
   </style>
 </head>
 
 <body>
-  <h1>$ Paste_Output</h1>
+  <div class="app-title">EPHERMAL PASTE</div>
+  <h1>View Snip</h1>
 
   <pre id="content">loading...</pre>
 
   <script>
+    // Typewriter effect function with sound
+    function typeWriter(element, text, speed = 50) {
+      element.textContent = "";
+      let i = 0;
+
+      // Create audio context for typing sound
+      const audioContext = new (
+        window.AudioContext || window.webkitAudioContext
+      )();
+
+      function playTypingSound() {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.frequency.value = 800;
+        oscillator.type = "sine";
+
+        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(
+          0.01,
+          audioContext.currentTime + 0.05,
+        );
+
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.05);
+      }
+
+      function type() {
+        if (i < text.length) {
+          element.textContent += text.charAt(i);
+          playTypingSound();
+          i++;
+          setTimeout(type, speed);
+        }
+      }
+
+      type();
+    }
+
     async function load() {
       const id = window.location.pathname.split("/").pop();
-      const res = await fetch(`/api/pastes/${id}`);
-
+      const res = await fetch(`/api/pastes-id/${id}`);
 
       const box = document.getElementById("content");
 
       if (res.status !== 200) {
-        box.textContent = "⚠ paste expired or not found";
+        box.classList.add("error");
+
+        // Create the error message with HTML
+        const warningSymbol = document.createElement("span");
+        warningSymbol.className = "warning-symbol";
+        warningSymbol.textContent = "⚠ ";
+
+        const errorMessage = document.createElement("span");
+        errorMessage.className = "error-message";
+
+        box.textContent = "";
+        box.appendChild(warningSymbol);
+        box.appendChild(errorMessage);
+
+        // Type the error message with sound
+        typeWriter(
+          errorMessage,
+          "The Link is expired or exceeded the maximum view limit!",
+          50,
+        );
         return;
       }
 
@@ -47,4 +132,5 @@
     load();
   </script>
 </body>
+
 </html>

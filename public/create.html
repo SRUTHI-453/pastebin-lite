@@ -1,5 +1,6 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
+
 <head>
   <title>Create Paste - Terminal Mode</title>
   <style>
@@ -9,16 +10,19 @@
       font-family: "Consolas", "Courier New", monospace;
       padding: 20px;
     }
+
     h1 {
       color: #00ff99;
       text-shadow: 0px 0px 10px #00ff99;
     }
+
     .box {
       border: 1px solid #00ff99;
       padding: 15px;
       margin-top: 20px;
       background-color: #000;
     }
+
     textarea {
       width: 100%;
       height: 150px;
@@ -28,7 +32,10 @@
       padding: 10px;
       font-family: "Consolas";
       font-size: 15px;
+      box-sizing: border-box;
+      /* Fix width issue */
     }
+
     input {
       background-color: #000;
       color: #00ff99;
@@ -37,6 +44,7 @@
       margin-top: 5px;
       width: 100px;
     }
+
     button {
       background-color: #00ff99;
       color: #000;
@@ -47,36 +55,49 @@
       font-weight: bold;
       text-transform: uppercase;
     }
+
     button:hover {
       background-color: #00ffaa;
     }
+
     #result {
       margin-top: 20px;
-      color: #00ffaa;
+      color: #00ffff;
       font-size: 18px;
+      font-weight: bold;
+    }
+
+    .app-title {
+      text-align: center;
+      font-size: 32px;
+      margin-bottom: 30px;
+      letter-spacing: 3px;
+      color: #00ff99;
+      text-shadow: 0px 0px 15px #00ff99;
     }
   </style>
 </head>
 
 <body>
-  <h1>$ Create_Paste</h1>
+  <div class="app-title">EPHERMAL PASTE</div>
+  <h1>Share Snip</h1>
 
   <div class="box">
     <form id="pasteForm">
-      <label>Enter Content:</label>
+      <label>Enter Snippet:</label>
       <textarea id="content" placeholder="Type your paste here..."></textarea>
 
-      <br><br>
+      <br /><br />
       <label>TTL (seconds):</label>
-      <br>
-      <input type="number" id="ttl" placeholder="60">
+      <br />
+      <input type="number" id="ttl" value="60" placeholder="60" />
 
-      <br><br>
+      <br /><br />
       <label>Max Views:</label>
-      <br>
-      <input type="number" id="views" placeholder="5">
+      <br />
+      <input type="number" id="views" value="5" placeholder="5" />
 
-      <br><br>
+      <br /><br />
       <button type="submit">Generate Link</button>
     </form>
   </div>
@@ -84,28 +105,166 @@
   <div id="result"></div>
 
   <script>
-    document.getElementById("pasteForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      
-      const content = document.getElementById("content").value;
-      const ttl = document.getElementById("ttl").value;
-      const views = document.getElementById("views").value;
+    // Create audio context
+    const audioContext = new (
+      window.AudioContext || window.webkitAudioContext
+    )();
 
-      const body = { content };
-      if (ttl) body.ttl_seconds = Number(ttl);
-      if (views) body.max_views = Number(views);
+    // Typing sound for textarea
+    function playTypingSound() {
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
 
-      const res = await fetch("/api/pastes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
-      });
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
 
-      const data = await res.json();
+      oscillator.frequency.value = 800;
+      oscillator.type = "sine";
 
-      document.getElementById("result").innerHTML =
-        `> Paste Created → <a href="/p/${data.id}" style="color:#00ffaa;">/p/${data.id}</a>`;
+      gainNode.gain.setValueAtTime(0.05, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(
+        0.01,
+        audioContext.currentTime + 0.03,
+      );
+
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.03);
+    }
+
+    // Error sound - simple beep
+    function playErrorSound() {
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.frequency.value = 400;
+      oscillator.type = "square";
+
+      gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(
+        0.01,
+        audioContext.currentTime + 0.2,
+      );
+
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.2);
+    }
+
+    // Success sound for link generation
+    function playSuccessSound() {
+      const oscillator1 = audioContext.createOscillator();
+      const oscillator2 = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator1.connect(gainNode);
+      oscillator2.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      // First note (C)
+      oscillator1.frequency.value = 523.25;
+      oscillator1.type = "sine";
+
+      // Second note (E) - harmony
+      oscillator2.frequency.value = 659.25;
+      oscillator2.type = "sine";
+
+      gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(
+        0.01,
+        audioContext.currentTime + 0.3,
+      );
+
+      oscillator1.start(audioContext.currentTime);
+      oscillator2.start(audioContext.currentTime);
+      oscillator1.stop(audioContext.currentTime + 0.3);
+      oscillator2.stop(audioContext.currentTime + 0.3);
+
+      // Second chord after 0.15s (G and B)
+      setTimeout(() => {
+        const osc3 = audioContext.createOscillator();
+        const osc4 = audioContext.createOscillator();
+        const gain2 = audioContext.createGain();
+
+        osc3.connect(gain2);
+        osc4.connect(gain2);
+        gain2.connect(audioContext.destination);
+
+        osc3.frequency.value = 783.99; // G
+        osc4.frequency.value = 987.77; // B
+        osc3.type = "sine";
+        osc4.type = "sine";
+
+        gain2.gain.setValueAtTime(0.2, audioContext.currentTime);
+        gain2.gain.exponentialRampToValueAtTime(
+          0.01,
+          audioContext.currentTime + 0.4,
+        );
+
+        osc3.start(audioContext.currentTime);
+        osc4.start(audioContext.currentTime);
+        osc3.stop(audioContext.currentTime + 0.4);
+        osc4.stop(audioContext.currentTime + 0.4);
+      }, 150);
+    }
+
+    // Add typing sound to textarea
+    const textarea = document.getElementById("content");
+    textarea.addEventListener("keydown", (e) => {
+      // Don't play sound for special keys
+      if (e.key.length === 1 || e.key === "Backspace" || e.key === "Enter") {
+        playTypingSound();
+      }
     });
+
+    // Form submission with success sound
+    document
+      .getElementById("pasteForm")
+      .addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const content = document.getElementById("content").value;
+        const ttl = document.getElementById("ttl").value;
+        const views = document.getElementById("views").value;
+
+        // Validation: Check if content is empty
+        if (!content || content.trim() === "") {
+          playErrorSound();
+          document.getElementById("result").innerHTML =
+            '<span style="color:#ffcc00;">⚠</span> <span style="color:#ff0000;">Share your snippet!</span>';
+          return;
+        }
+
+        const body = { content };
+
+        // Only add ttl_seconds if a value is provided
+        if (ttl && ttl.trim() !== "") {
+          body.ttl_seconds = Number(ttl);
+        }
+
+        // Only add max_views if a value is provided
+        if (views && views.trim() !== "") {
+          body.max_views = Number(views);
+        }
+
+        console.log("Sending body:", body);
+
+        const res = await fetch("/api/pastes", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+
+        const data = await res.json();
+
+        // Play success sound
+        playSuccessSound();
+
+        document.getElementById("result").innerHTML =
+          `<span style="color:#ffffff;">👉 YOUR LINK</span> <a href="/p/${data.id}" style="color:#00ffff; text-decoration: underline;">/p/${data.id}</a>`;
+      });
   </script>
 </body>
+
 </html>

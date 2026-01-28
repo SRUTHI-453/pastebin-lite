@@ -1,10 +1,10 @@
-# Pastebin-Lite
+# Ephemeral Paste – Pastebin Lite
 
 A lightweight pastebin application that allows users to create and share text pastes with optional expiry constraints.
 
 ## Project Description
 
-Pastebin-Lite is a web application built with Next.js that enables users to:
+Ephemeral Pastee is a web application built with Node.js that enables users to:
 - Create text pastes and receive shareable URLs
 - Set optional time-based expiry (TTL) on pastes
 - Set optional view-count limits on pastes
@@ -144,8 +144,8 @@ Retrieves paste content and metadata. Each successful fetch counts as a view.
 **Error Response (404):**
 ```json
 {
-  "error": "Paste not found"
-}
+  "error":"Expired"
+  }
 ```
 
 ### View Paste (HTML)
@@ -156,7 +156,7 @@ Displays the paste content in a web page. Returns 404 if paste is unavailable.
 ## Important Design Decisions
 
 ### 1. ID Generation
-Using `nanoid` library to generate short (10 characters), URL-safe, unique identifiers. This provides good collision resistance while keeping URLs short.
+Using `crypto` library to generate id, URL-safe, unique identifiers. This provides good collision resistance while keeping URLs short.
 
 ### 2. View Counting with Atomic Operations
 View counts are incremented atomically in Redis to prevent race conditions under concurrent access. The application checks constraints before incrementing to ensure pastes don't exceed their limits.
@@ -182,7 +182,7 @@ When both TTL and max_views are set, the paste becomes unavailable as soon as ei
 
 1. Push your code to a GitHub repository
 2. Go to [vercel.com](https://vercel.com) and import your repository
-3. Vercel will auto-detect Next.js configuration
+3. Vercel will auto-detect Node.js configuration
 4. Add a Vercel KV database from the Storage tab
 5. Environment variables will be automatically configured
 6. Deploy!
@@ -199,11 +199,11 @@ The application supports deterministic time testing for automated test suites:
 
 ## Technologies Used
 
-- **Next.js 14**: React framework with API routes
+- **Node.js 20**: React framework with API routes
 - **TypeScript**: Type-safe development
 - **Vercel KV**: Redis-compatible serverless database
 - **Tailwind CSS**: Utility-first CSS framework
-- **nanoid**: Unique ID generation
+- **crypto**: Unique ID generation
 
 ## License
 

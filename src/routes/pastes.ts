@@ -1,20 +1,20 @@
 import express from "express";
 import { redis } from "../lib/redis";
 import { getNow } from "../lib/time";
-
+import crypto from "crypto";
+ 
 const router = express.Router();
-
+ 
 router.post("/", async (req, res) => {
   const { content, ttl_seconds, max_views } = req.body;
-
+ 
   if (!content || typeof content !== "string") {
     return res.status(400).json({ error: "Invalid content" });
   }
-
-  // FIXED: No nanoid needed
+ 
   const id = crypto.randomUUID();
   const now = getNow(req);
-
+ 
   const paste = {
     id,
     content,
@@ -23,13 +23,20 @@ router.post("/", async (req, res) => {
     maxViews: max_views ?? null,
     views: 0
   };
-
+ 
   await redis.set(`paste:${id}`, JSON.stringify(paste));
-
+ 
+  console.log("Created paste:", {
+    id,
+    createdAt: paste.createdAt,
+    expiresAt: paste.expiresAt,
+    maxViews: paste.maxViews
+  });
+ 
   res.json({
     id,
     url: `${process.env.BASE_URL}/p/${id}`
   });
 });
-
+ 
 export default router;
