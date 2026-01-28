@@ -1,7 +1,6 @@
 import express from "express";
 import { redis } from "../lib/redis";
 import { getNow } from "../lib/time";
-import { nanoid } from "nanoid";
 
 const router = express.Router();
 
@@ -12,7 +11,8 @@ router.post("/", async (req, res) => {
     return res.status(400).json({ error: "Invalid content" });
   }
 
-  const id = nanoid();
+  // FIXED: No nanoid needed
+  const id = crypto.randomUUID();
   const now = getNow(req);
 
   const paste = {

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>View Paste - Terminal Mode</title>
+  <style>
+    body {
+      background-color: #0d0d0d;
+      color: #00ff99;
+      font-family: Consolas, monospace;
+      padding: 20px;
+    }
+    h1 {
+      text-shadow: 0px 0px 10px #00ff99;
+    }
+    pre {
+      border: 1px solid #00ff99;
+      padding: 15px;
+      background-color: #000;
+      overflow-x: auto;
+      color: #00ff99;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>$ Paste_Output</h1>
+
+  <pre id="content">loading...</pre>
+
+  <script>
+    async function load() {
+      const id = window.location.pathname.split("/").pop();
+      const res = await fetch(`/api/pastes/${id}`);
+
+
+      const box = document.getElementById("content");
+
+      if (res.status !== 200) {
+        box.textContent = "⚠ paste expired or not found";
+        return;
+      }
+
+      const data = await res.json();
+      box.textContent = data.content;
+    }
+
+    load();
+  </script>
+</body>
+</html>

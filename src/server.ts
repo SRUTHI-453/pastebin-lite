@@ -28,10 +28,17 @@ function loadRoutes() {
 // Load routes automatically
 loadRoutes();
 
-// UI route
+// UI route for create paste
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "src/views/create.html"));
+  res.sendFile(path.join(__dirname, "../public/create.html"));
 });
+
+
+// UI route for viewing a paste by ID
+app.get("/pastes/:id", (req, res) => {
+  res.sendFile(path.join(__dirname, "../public/view.html"));
+});
+
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
